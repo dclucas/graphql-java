@@ -4,6 +4,7 @@ import graphql.GraphQLError;
 import graphql.language.Definition;
 import graphql.language.ScalarTypeDefinition;
 import graphql.language.SchemaDefinition;
+import graphql.language.ServiceDefinition;
 import graphql.language.Type;
 import graphql.language.TypeDefinition;
 import graphql.language.TypeExtensionDefinition;
@@ -29,15 +30,14 @@ public class TypeDefinitionRegistry {
     private final Map<String, ScalarTypeDefinition> scalarTypes = new LinkedHashMap<>();
     private final Map<String, List<TypeExtensionDefinition>> typeExtensions = new LinkedHashMap<>();
     private final Map<String, TypeDefinition> types = new LinkedHashMap<>();
+    private final Map<String, ServiceDefinition> serviceDefinitions = new LinkedHashMap<>();
     private SchemaDefinition schema;
 
     /**
      * This will merge these type registries together and return this one
      *
      * @param typeRegistry the registry to be merged into this one
-     *
      * @return this registry
-     *
      * @throws SchemaProblem if there are problems merging the types such as redefinitions
      */
     public TypeDefinitionRegistry merge(TypeDefinitionRegistry typeRegistry) throws SchemaProblem {
@@ -80,7 +80,6 @@ public class TypeDefinitionRegistry {
      * Adds a definition to the registry
      *
      * @param definition the definition to add
-     *
      * @return an optional error
      */
     public Optional<GraphQLError> add(Definition definition) {
@@ -93,6 +92,12 @@ public class TypeDefinitionRegistry {
         } else if (definition instanceof TypeDefinition) {
             TypeDefinition newEntry = (TypeDefinition) definition;
             return define(types, types, newEntry);
+        } else if (definition instanceof ServiceDefinition) {
+            ServiceDefinition serviceDefinition = (ServiceDefinition) definition;
+            serviceDefinitions.put(((ServiceDefinition) definition).getName(), (ServiceDefinition) definition);
+            for(TypeDefinition typeDefinition: serviceDefinition.getTypeDefinitions()) {
+               add(typeDefinition);
+            }
         } else if (definition instanceof SchemaDefinition) {
             SchemaDefinition newSchema = (SchemaDefinition) definition;
             if (schema != null) {
@@ -164,5 +169,9 @@ public class TypeDefinitionRegistry {
             return Optional.of(typeDefinition);
         }
         return Optional.empty();
+    }
+
+    public Map<String,ServiceDefinition> getServiceDefinitions() {
+        return serviceDefinitions;
     }
 }

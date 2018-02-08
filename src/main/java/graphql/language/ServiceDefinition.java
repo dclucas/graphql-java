@@ -2,7 +2,7 @@ package graphql.language;
 
 import java.util.List;
 
-public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
+public class ServiceDefinition extends AbstractNode<ServiceDefinition> implements TypeDefinition<ServiceDefinition> {
 
     private final String name;
     private final String url;
@@ -32,6 +32,11 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public List<Directive> getDirectives() {
+        return null;
     }
 
     public String getUrl() {
