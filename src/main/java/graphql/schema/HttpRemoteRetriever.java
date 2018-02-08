@@ -46,6 +46,7 @@ public class HttpRemoteRetriever<C> {
                 Map<String, String> body = new LinkedHashMap<>();
                 String queryString = AstPrinter.printAst(query);
                 body.put("query", queryString);
+                System.out.println("query: " + queryString);
                 mapper.writeValue(out, body);
             } catch (IOException e) {
                 throw new RuntimeException(e);

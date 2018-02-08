@@ -2,6 +2,7 @@ package graphql;
 
 import graphql.language.Document;
 import graphql.language.FieldDefinition;
+import graphql.language.FieldTransformation;
 import graphql.language.InputValueDefinition;
 import graphql.language.ListType;
 import graphql.language.ObjectTypeDefinition;
@@ -17,6 +18,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.SchemaPrinter;
+import graphql.schema.idl.StitchingRuntimeWiring;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.WiringFactory;
 
@@ -32,25 +34,6 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 public class StitchingDSLExample {
 
-
-    public static class StitchingRuntimeWiring implements WiringFactory {
-
-
-        @Override
-        public boolean providesDataFetcher(FieldWiringEnvironment environment) {
-            TypeDefinition parentType = environment.getParentType();
-            if (parentType.getName().equals("Query")) {
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public DataFetcher getDataFetcher(FieldWiringEnvironment environment) {
-            RemoteRootQueryDataFetcher remoteRootQueryDataFetcher = new RemoteRootQueryDataFetcher(environment.getFieldDefinition().getServiceDefinition());
-            return remoteRootQueryDataFetcher;
-        }
-    }
 
     private static Document buildDocument() {
         /**
@@ -151,10 +134,14 @@ public class StitchingDSLExample {
          *  }
          * }
          */
-        ServiceDefinition serviceDefinition = new ServiceDefinition("Posts", "https://4r09jwx0k9.lp.gql.zone/graphql");
+        ServiceDefinition serviceDefinition = new ServiceDefinition("Posts", "https://p0rm35pkm0.lp.gql.zone/graphql");
         ObjectTypeDefinition postTypeDefinition = new ObjectTypeDefinition("Post");
         postTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "id", "ID"));
-        postTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "authorId", "ID"));
+        FieldDefinition authorField = newFieldDefinition(serviceDefinition, "authorId", "ID");
+        FieldTransformation authorFieldTransformation = new FieldTransformation();
+        authorFieldTransformation.setTargetFieldDefinition(newFieldDefinition(serviceDefinition, "author", "User"));
+        authorField.setFieldTransformation(authorFieldTransformation);
+        postTypeDefinition.getFieldDefinitions().add(authorField);
 
         ObjectTypeDefinition queryTypeDefinition = new ObjectTypeDefinition("Query");
 
@@ -177,7 +164,7 @@ public class StitchingDSLExample {
          *  }
          * }
          */
-        ServiceDefinition serviceDefinition = new ServiceDefinition("Users", "https://4r09jwx0k9.lp.gql.zone/graphql");
+        ServiceDefinition serviceDefinition = new ServiceDefinition("Users", "https://r9km4x894n.lp.gql.zone/graphql");
         ObjectTypeDefinition userTypeDefinition = new ObjectTypeDefinition("User");
         userTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "id", "ID"));
         userTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "name", "String"));
@@ -232,14 +219,10 @@ public class StitchingDSLExample {
         String printed = schemaPrinter.print(graphQLSchema);
         System.out.println("schema:" + printed);
 
-//        GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
+        GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
 //
-//        ExecutionResult executionResult1 = build.execute("{hello}");
-//        System.out.println(executionResult1.getData().toString());
-//
-//
-//        ExecutionResult executionResult2 = build.execute("{hello2}");
-//        System.out.println(executionResult2.getData().toString());
+        ExecutionResult executionResult1 = build.execute("{posts{id, authorId}}");
+        System.out.println(executionResult1.getData().toString());
 
 
     }
