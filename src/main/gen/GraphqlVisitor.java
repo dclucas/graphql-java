@@ -37,12 +37,6 @@ public interface GraphqlVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitServiceUrl(GraphqlParser.ServiceUrlContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link GraphqlParser#url}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitUrl(GraphqlParser.UrlContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link GraphqlParser#operationDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

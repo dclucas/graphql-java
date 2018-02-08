@@ -45,7 +45,13 @@ class ParserTest extends Specification {
     url: "asd"
     type Post {
         id: ID!
+        title: String
     }
+
+    extend type User {
+        id: ID!
+        posts: [Post]
+    }    
 }
 
 service UserSvc {

@@ -16,7 +16,7 @@ serviceDefinition
 ;
 
 serviceDefinition:
-'service' name '{' serviceUrl typeSystemDefinition '}' ;
+'service' name '{' serviceUrl typeSystemDefinition* '}' ;
 serviceUrl: 'url' ':' stringValue;
 
 operationDefinition:
