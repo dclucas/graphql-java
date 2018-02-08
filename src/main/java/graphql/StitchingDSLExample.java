@@ -2,6 +2,8 @@ package graphql;
 
 import graphql.language.Document;
 import graphql.language.FieldDefinition;
+import graphql.language.InputValueDefinition;
+import graphql.language.ListType;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.ServiceDefinition;
 import graphql.language.TypeDefinition;
@@ -108,6 +110,104 @@ public class StitchingDSLExample {
 
     }
 
+    private static Document buildDocument3() {
+        /**
+         * service User {
+         *  type User {
+         *      id: ID
+         *      name: String
+         *  }
+         *  type Query {
+         *      user(id:ID): User
+         *  }
+         * }
+         * service Posts {
+         *  type Post {
+         *      id: ID
+         *      authorId: ID => author: User
+         *  }
+         *  type Query {
+         *      posts: [Post]
+         *  }
+         * }
+         */
+        ServiceDefinition postsService = buildPostsService();
+        ServiceDefinition usersService = buildUsersService();
+        Document document = new Document();
+        document.setDefinitions(Arrays.asList(postsService, usersService));
+        return document;
+
+    }
+
+    private static ServiceDefinition buildPostsService() {
+        /**
+         * service Posts {
+         *  type Post {
+         *      id: ID
+         *      authorId: ID => author: User
+         *  }
+         *  type Query {
+         *      posts: [Post]
+         *  }
+         * }
+         */
+        ServiceDefinition serviceDefinition = new ServiceDefinition("Posts", "https://4r09jwx0k9.lp.gql.zone/graphql");
+        ObjectTypeDefinition postTypeDefinition = new ObjectTypeDefinition("Post");
+        postTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "id", "ID"));
+        postTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "authorId", "ID"));
+
+        ObjectTypeDefinition queryTypeDefinition = new ObjectTypeDefinition("Query");
+
+        FieldDefinition userField = newFieldDefinitionOfListType(serviceDefinition, "posts", "Post");
+        queryTypeDefinition.getFieldDefinitions().add(userField);
+
+        serviceDefinition.setTypeDefinitions(Arrays.asList(queryTypeDefinition, postTypeDefinition));
+        return serviceDefinition;
+    }
+
+    private static ServiceDefinition buildUsersService() {
+        /**
+         * service User {
+         *  type User {
+         *      id: ID
+         *      name: String
+         *  }
+         *  type Query {
+         *      user(id:ID): User
+         *  }
+         * }
+         */
+        ServiceDefinition serviceDefinition = new ServiceDefinition("Users", "https://4r09jwx0k9.lp.gql.zone/graphql");
+        ObjectTypeDefinition userTypeDefinition = new ObjectTypeDefinition("User");
+        userTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "id", "ID"));
+        userTypeDefinition.getFieldDefinitions().add(newFieldDefinition(serviceDefinition, "name", "String"));
+
+        ObjectTypeDefinition queryTypeDefinition = new ObjectTypeDefinition("Query");
+
+        FieldDefinition userField = newFieldDefinition(serviceDefinition, "user", "User");
+        InputValueDefinition userFieldInput = new InputValueDefinition("id");
+        userFieldInput.setType(new TypeName("ID"));
+        userField.getInputValueDefinitions().add(userFieldInput);
+        queryTypeDefinition.getFieldDefinitions().add(userField);
+
+
+        serviceDefinition.setTypeDefinitions(Arrays.asList(queryTypeDefinition, userTypeDefinition));
+        return serviceDefinition;
+    }
+
+    private static FieldDefinition newFieldDefinition(ServiceDefinition serviceDefinition, String name, String type) {
+        FieldDefinition userField = new FieldDefinition(name);
+        userField.setServiceDefinition(serviceDefinition);
+        userField.setType(new TypeName(type));
+        return userField;
+    }
+
+    private static FieldDefinition newFieldDefinitionOfListType(ServiceDefinition serviceDefinition, String name, String type) {
+        FieldDefinition userField = new FieldDefinition(name);
+        userField.setServiceDefinition(serviceDefinition);
+        userField.setType(new ListType(new TypeName(type)));
+        return userField;
+    }
 
     public static void main(String[] args) throws IOException {
 
@@ -116,7 +216,7 @@ public class StitchingDSLExample {
 //        String schema = Files.readAllLines(Paths.get("./stitching-dsl.txt")).stream().collect(Collectors.joining());
 //        schemaParser.parse(schema);
         // TODO: remove when ready
-        Document document = buildDocument2();
+        Document document = buildDocument3();
 
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.buildRegistry(document);
 
@@ -132,15 +232,14 @@ public class StitchingDSLExample {
         String printed = schemaPrinter.print(graphQLSchema);
         System.out.println("schema:" + printed);
 
-        GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
-
-        ExecutionResult executionResult1 = build.execute("{hello}");
-        System.out.println(executionResult1.getData().toString());
-
-
-        ExecutionResult executionResult2 = build.execute("{hello2}");
-        System.out.println(executionResult2.getData().toString());
-
+//        GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
+//
+//        ExecutionResult executionResult1 = build.execute("{hello}");
+//        System.out.println(executionResult1.getData().toString());
+//
+//
+//        ExecutionResult executionResult2 = build.execute("{hello2}");
+//        System.out.println(executionResult2.getData().toString());
 
 
     }
