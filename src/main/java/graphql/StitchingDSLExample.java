@@ -70,6 +70,44 @@ public class StitchingDSLExample {
         return document;
     }
 
+    private static Document buildDocument2() {
+        /**
+         * service Foo1 {
+         *  type Query {
+         *      hello: String
+         *  }
+         * }
+         * service Foo2 {
+         *  type Query {
+         *      hello2: String
+         *  }
+         * }
+         */
+        ServiceDefinition serviceDefinition1 = new ServiceDefinition("Foo1", "https://4r09jwx0k9.lp.gql.zone/graphql");
+        ServiceDefinition serviceDefinition2 = new ServiceDefinition("Foo2", "https://4r09jwx0k9.lp.gql.zone/graphql");
+
+        FieldDefinition fieldDefinition1 = new FieldDefinition("hello");
+        fieldDefinition1.setType(new TypeName("String"));
+        fieldDefinition1.setServiceDefinition(serviceDefinition1);
+
+        ObjectTypeDefinition objectTypeDefinition1 = new ObjectTypeDefinition("Query");
+        objectTypeDefinition1.getFieldDefinitions().add(fieldDefinition1);
+        serviceDefinition1.setTypeDefinitions(Collections.singletonList(objectTypeDefinition1));
+
+        FieldDefinition fieldDefinition2 = new FieldDefinition("hello2");
+        fieldDefinition2.setType(new TypeName("String"));
+        fieldDefinition2.setServiceDefinition(serviceDefinition2);
+
+        ObjectTypeDefinition objectTypeDefinition2 = new ObjectTypeDefinition("Query");
+        objectTypeDefinition2.getFieldDefinitions().add(fieldDefinition2);
+        serviceDefinition2.setTypeDefinitions(Collections.singletonList(objectTypeDefinition2));
+
+        Document document = new Document();
+        document.setDefinitions(Arrays.asList(serviceDefinition1, serviceDefinition2));
+        return document;
+
+    }
+
 
     public static void main(String[] args) throws IOException {
 
@@ -78,7 +116,7 @@ public class StitchingDSLExample {
 //        String schema = Files.readAllLines(Paths.get("./stitching-dsl.txt")).stream().collect(Collectors.joining());
 //        schemaParser.parse(schema);
         // TODO: remove when ready
-        Document document = buildDocument();
+        Document document = buildDocument2();
 
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.buildRegistry(document);
 
@@ -95,9 +133,15 @@ public class StitchingDSLExample {
         System.out.println("schema:" + printed);
 
         GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
-        ExecutionResult executionResult = build.execute("{hello}");
 
-        System.out.println(executionResult.getData().toString());
+        ExecutionResult executionResult1 = build.execute("{hello}");
+        System.out.println(executionResult1.getData().toString());
+
+
+        ExecutionResult executionResult2 = build.execute("{hello2}");
+        System.out.println(executionResult2.getData().toString());
+
+
 
     }
 }
