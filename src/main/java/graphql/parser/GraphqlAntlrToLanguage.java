@@ -432,20 +432,14 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitServiceUrl(GraphqlParser.ServiceUrlContext ctx) {
-        String url = parseSingleQuotedString(ctx.stringValue().getText());
-        ServiceDefinition def = (ServiceDefinition) contextStack.peek().value;
-        def.setUrl(url);
-        return null;
-    }
-
-    @Override
     public Void visitServiceDefinition(GraphqlParser.ServiceDefinitionContext ctx) {
-        ServiceDefinition def = new ServiceDefinition();
+        String url = parseSingleQuotedString(ctx.serviceUrl().stringValue().getText());
+        String name = ctx.name().getText();
+        ServiceDefinition def = new ServiceDefinition(name, url);
         addContextProperty(ContextProperty.ServiceDefinition, def);
         super.visitChildren(ctx);
-        return super.visitServiceDefinition(ctx);
-        //return null;
+        result.getDefinitions().add(def);
+        return null;
     }
 
     @Override
@@ -458,6 +452,7 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
         addContextProperty(ContextProperty.OperationTypeDefinition, def);
         super.visitChildren(ctx);
         popContext();
@@ -479,6 +474,7 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
     @Override
     public Void visitObjectTypeDefinition(GraphqlParser.ObjectTypeDefinitionContext ctx) {
         ObjectTypeDefinition def = null;
+        ServiceDefinition svcDef = null;
         for (ContextEntry contextEntry : contextStack) {
             if (contextEntry.contextProperty == ContextProperty.TypeExtensionDefinition) {
                 ((TypeExtensionDefinition) contextEntry.value).setName(ctx.name().getText());
@@ -486,11 +482,24 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
+        for (ContextEntry contextEntry : contextStack) {
+            if (contextEntry.contextProperty == ContextProperty.ServiceDefinition) {
+                svcDef = (ServiceDefinition) contextEntry.value;
+                break;
+            }
+        }
+
         if (null == def) {
             def = new ObjectTypeDefinition(ctx.name().getText());
             newNode(def, ctx);
             def.setDescription(newDescription(ctx.description()));
-            result.getDefinitions().add(def);
+            if (null != svcDef) {
+                svcDef.getTypeDefinitions().add(def);
+            }
+            else {
+                result.getDefinitions().add(def);
+            }
         }
         addContextProperty(ContextProperty.ObjectTypeDefinition, def);
         super.visitChildren(ctx);

@@ -1,18 +1,26 @@
 package graphql.language;
 
+import javax.xml.ws.Service;
+import java.util.ArrayList;
 import java.util.List;
 
-public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
+public class ServiceDefinition extends AbstractNode<ServiceDefinition> implements TypeDefinition<ServiceDefinition>  {
 
-    private String name;
-    private String url;
+    private final String name;
+    private final String url;
+    private final List<Directive> directives;
+
     private List<TypeDefinition<?>> typeDefinitions;
 
-    public ServiceDefinition() {}
-
-    public ServiceDefinition(String name, String url) {
+    public ServiceDefinition(String name, String url, List<Directive> directives) {
         this.name = name;
         this.url = url;
+        this.directives = directives;
+        this.typeDefinitions = new ArrayList<>();
+    }
+
+    public ServiceDefinition(String name, String url) {
+        this(name, url, new ArrayList<>());
     }
 
     @Override
@@ -30,6 +38,10 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
         return null;
     }
 
+    @Override
+    public List<Directive> getDirectives() {
+        return directives;
+    }
 
     public String getName() {
         return name;
@@ -38,10 +50,6 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
     public String getUrl() {
         return url;
     }
-
-    public void setName(String name) { this.name = name; }
-
-    public void setUrl(String url) { this.url = url; }
 
     public List<TypeDefinition<?>> getTypeDefinitions() {
         return typeDefinitions;
