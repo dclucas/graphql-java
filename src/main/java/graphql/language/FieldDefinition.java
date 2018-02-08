@@ -13,6 +13,8 @@ public class FieldDefinition extends AbstractNode<FieldDefinition> {
     private Description description;
     private final List<InputValueDefinition> inputValueDefinitions;
     private final List<Directive> directives;
+    private FieldTransformation fieldTransformation;
+    private ServiceDefinition serviceDefinition;
 
     public FieldDefinition(String name) {
         this(name, null, new ArrayList<>(), new ArrayList<>());
@@ -65,6 +67,21 @@ public class FieldDefinition extends AbstractNode<FieldDefinition> {
         return getDirectivesByName().get(directiveName);
     }
 
+    public FieldTransformation getFieldTransformation() {
+        return fieldTransformation;
+    }
+
+    public void setFieldTransformation(FieldTransformation fieldTransformation) {
+        this.fieldTransformation = fieldTransformation;
+    }
+
+    public ServiceDefinition getServiceDefinition() {
+        return serviceDefinition;
+    }
+
+    public void setServiceDefinition(ServiceDefinition serviceDefinition) {
+        this.serviceDefinition = serviceDefinition;
+    }
 
     @Override
     public List<Node> getChildren() {

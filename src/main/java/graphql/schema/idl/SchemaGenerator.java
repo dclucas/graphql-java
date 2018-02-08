@@ -20,6 +20,7 @@ import graphql.language.ObjectValue;
 import graphql.language.OperationTypeDefinition;
 import graphql.language.ScalarTypeDefinition;
 import graphql.language.SchemaDefinition;
+import graphql.language.ServiceDefinition;
 import graphql.language.StringValue;
 import graphql.language.Type;
 import graphql.language.TypeDefinition;
@@ -151,9 +152,7 @@ public class SchemaGenerator {
      *
      * @param typeRegistry this can be obtained via {@link SchemaParser#parse(String)}
      * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
-     *
      * @return an executable schema
-     *
      * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
      */
     public GraphQLSchema makeExecutableSchema(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring) throws SchemaProblem {
@@ -166,6 +165,7 @@ public class SchemaGenerator {
         return makeExecutableSchemaImpl(buildCtx);
     }
 
+
     private GraphQLSchema makeExecutableSchemaImpl(BuildContext buildCtx) {
         GraphQLObjectType query;
         GraphQLObjectType mutation;
@@ -173,51 +173,70 @@ public class SchemaGenerator {
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        //
-        // Schema can be missing if the type is called 'Query'.  Pre flight checks have checked that!
-        //
-        TypeDefinitionRegistry typeRegistry = buildCtx.getTypeRegistry();
-        if (!typeRegistry.schemaDefinition().isPresent()) {
-            @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
-            TypeDefinition queryTypeDef = typeRegistry.getType("Query").get();
 
-            query = buildOutputType(buildCtx, new TypeName(queryTypeDef.getName()));
-            schemaBuilder.query(query);
+        Map<String, ServiceDefinition> serviceDefinitions = buildCtx.getTypeRegistry().getServiceDefinitions();
+        List<ObjectTypeDefinition> queries = new ArrayList<>();
 
-            Optional<TypeDefinition> mutationTypeDef = typeRegistry.getType("Mutation");
-            if (mutationTypeDef.isPresent()) {
-                mutation = buildOutputType(buildCtx, new TypeName(mutationTypeDef.get().getName()));
-                schemaBuilder.mutation(mutation);
-            }
-            Optional<TypeDefinition> subscriptionTypeDef = typeRegistry.getType("Subscription");
-            if (subscriptionTypeDef.isPresent()) {
-                subscription = buildOutputType(buildCtx, new TypeName(subscriptionTypeDef.get().getName()));
-                schemaBuilder.subscription(subscription);
-            }
-        } else {
-            SchemaDefinition schemaDefinition = typeRegistry.schemaDefinition().get();
-            List<OperationTypeDefinition> operationTypes = schemaDefinition.getOperationTypeDefinitions();
-
-            // pre-flight checked via checker
-            @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
-            OperationTypeDefinition queryOp = operationTypes.stream().filter(op -> "query".equals(op.getName())).findFirst().get();
-            Optional<OperationTypeDefinition> mutationOp = operationTypes.stream().filter(op -> "mutation".equals(op.getName())).findFirst();
-            Optional<OperationTypeDefinition> subscriptionOp = operationTypes.stream().filter(op -> "subscription".equals(op.getName())).findFirst();
-
-            query = buildOperation(buildCtx, queryOp);
-            schemaBuilder.query(query);
-
-            if (mutationOp.isPresent()) {
-                mutation = buildOperation(buildCtx, mutationOp.get());
-                schemaBuilder.mutation(mutation);
-            }
-            if (subscriptionOp.isPresent()) {
-                subscription = buildOperation(buildCtx, subscriptionOp.get());
-                schemaBuilder.subscription(subscription);
+        for (Map.Entry<String, ServiceDefinition> serviceDefinitionEntry : serviceDefinitions.entrySet()) {
+            ServiceDefinition serviceDefinition = serviceDefinitionEntry.getValue();
+            for (TypeDefinition<?> typeDefinition : serviceDefinition.getTypeDefinitions()) {
+                if (typeDefinition.getName().equals("Query")) {
+                    queries.add((ObjectTypeDefinition) typeDefinition);
+                }
             }
         }
 
-        Set<GraphQLType> additionalTypes = buildAdditionalTypes(buildCtx);
+        Assert.assertNotEmpty(queries, "queries not found");
+        GraphQLObjectType queryType = buildQueryType(buildCtx, queries);
+        schemaBuilder.query(queryType);
+
+
+//        //
+//        // Schema can be missing if the type is called 'Query'.  Pre flight checks have checked that!
+//        //
+//        TypeDefinitionRegistry typeRegistry = buildCtx.getTypeRegistry();
+//        if (!typeRegistry.schemaDefinition().isPresent()) {
+//            @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
+//            TypeDefinition queryTypeDef = typeRegistry.getType("Query").get();
+//
+//            query = buildOutputType(buildCtx, new TypeName(queryTypeDef.getName()));
+//            schemaBuilder.query(query);
+//
+//            Optional<TypeDefinition> mutationTypeDef = typeRegistry.getType("Mutation");
+//            if (mutationTypeDef.isPresent()) {
+//                mutation = buildOutputType(buildCtx, new TypeName(mutationTypeDef.get().getName()));
+//                schemaBuilder.mutation(mutation);
+//            }
+//            Optional<TypeDefinition> subscriptionTypeDef = typeRegistry.getType("Subscription");
+//            if (subscriptionTypeDef.isPresent()) {
+//                subscription = buildOutputType(buildCtx, new TypeName(subscriptionTypeDef.get().getName()));
+//                schemaBuilder.subscription(subscription);
+//            }
+//        } else {
+//            SchemaDefinition schemaDefinition = typeRegistry.schemaDefinition().get();
+//            List<OperationTypeDefinition> operationTypes = schemaDefinition.getOperationTypeDefinitions();
+//
+//            // pre-flight checked via checker
+//            @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
+//            OperationTypeDefinition queryOp = operationTypes.stream().filter(op -> "query".equals(op.getName())).findFirst().get();
+//            Optional<OperationTypeDefinition> mutationOp = operationTypes.stream().filter(op -> "mutation".equals(op.getName())).findFirst();
+//            Optional<OperationTypeDefinition> subscriptionOp = operationTypes.stream().filter(op -> "subscription".equals(op.getName())).findFirst();
+//
+//            query = buildOperation(buildCtx, queryOp);
+//            schemaBuilder.query(query);
+//
+//            if (mutationOp.isPresent()) {
+//                mutation = buildOperation(buildCtx, mutationOp.get());
+//                schemaBuilder.mutation(mutation);
+//            }
+//            if (subscriptionOp.isPresent()) {
+//                subscription = buildOperation(buildCtx, subscriptionOp.get());
+//                schemaBuilder.subscription(subscription);
+//            }
+//        }
+
+//        Set<GraphQLType> additionalTypes = buildAdditionalTypes(buildCtx);
+        Set<GraphQLType> additionalTypes = Collections.emptySet();
 
         schemaBuilder.fieldVisibility(buildCtx.getWiring().getFieldVisibility());
         return schemaBuilder.build(additionalTypes);
@@ -234,12 +253,12 @@ public class SchemaGenerator {
      * but then we build the rest of the types specified and put them in as additional types
      *
      * @param buildCtx the context we need to work out what we are doing
-     *
      * @return the additional types not referenced from the top level operations
      */
     private Set<GraphQLType> buildAdditionalTypes(BuildContext buildCtx) {
         Set<GraphQLType> additionalTypes = new HashSet<>();
         TypeDefinitionRegistry typeRegistry = buildCtx.getTypeRegistry();
+
         typeRegistry.types().values().forEach(typeDefinition -> {
             TypeName typeName = new TypeName(typeDefinition.getName());
             if (typeDefinition instanceof InputObjectTypeDefinition) {
@@ -260,7 +279,6 @@ public class SchemaGenerator {
      *
      * @param buildCtx the context we need to work out what we are doing
      * @param rawType  the type to be built
-     *
      * @return an output type
      */
     @SuppressWarnings("unchecked")
@@ -347,6 +365,26 @@ public class SchemaGenerator {
         buildObjectTypeFields(buildCtx, typeDefinition, builder, typeExtensions);
 
         buildObjectTypeInterfaces(buildCtx, typeDefinition, builder, typeExtensions);
+
+        return builder.build();
+    }
+
+    private GraphQLObjectType buildQueryType(BuildContext buildCtx, List<ObjectTypeDefinition> typeDefinitions) {
+
+        GraphQLObjectType.Builder builder = GraphQLObjectType.newObject();
+        builder.definition(typeDefinitions.get(0));
+        builder.name("Query");
+        builder.description(buildDescription(typeDefinitions.get(0), typeDefinitions.get(0).getDescription()));
+
+        Map<String, GraphQLFieldDefinition> fieldDefinitions = new LinkedHashMap<>();
+        for (ObjectTypeDefinition typeDefinition : typeDefinitions) {
+            typeDefinition.getFieldDefinitions().forEach(fieldDef -> {
+                GraphQLFieldDefinition newFieldDefinition = buildField(buildCtx, typeDefinition, fieldDef);
+                fieldDefinitions.put(newFieldDefinition.getName(), newFieldDefinition);
+            });
+        }
+        fieldDefinitions.values().forEach(builder::field);
+
 
         return builder.build();
     }
@@ -457,18 +495,38 @@ public class SchemaGenerator {
 
     private GraphQLFieldDefinition buildField(BuildContext buildCtx, TypeDefinition parentType, FieldDefinition fieldDef) {
         GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
-        builder.definition(fieldDef);
-        builder.name(fieldDef.getName());
-        builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
-        builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
+       if(fieldDef.getFieldTransformation() != null) {
+           FieldDefinition targetFieldDefinition = fieldDef.getFieldTransformation().getTargetFieldDefinition();
+           builder.definition(fieldDef);
+           builder.name(targetFieldDefinition.getName());
+           builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
+           builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
 
-        builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
+           builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
 
-        fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
-                builder.argument(buildArgument(buildCtx, inputValueDefinition)));
+           fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
+                   builder.argument(buildArgument(buildCtx, inputValueDefinition)));
 
-        GraphQLOutputType outputType = buildOutputType(buildCtx, fieldDef.getType());
-        builder.type(outputType);
+           GraphQLOutputType outputType = buildOutputType(buildCtx, targetFieldDefinition.getType());
+           builder.type(outputType);
+
+       }else {
+           builder.definition(fieldDef);
+           builder.name(fieldDef.getName());
+           builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
+           builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
+
+           builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
+
+           fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
+                   builder.argument(buildArgument(buildCtx, inputValueDefinition)));
+
+           GraphQLOutputType outputType = buildOutputType(buildCtx, fieldDef.getType());
+           builder.type(outputType);
+
+       }
+
+
 
         return builder.build();
     }

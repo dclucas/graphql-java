@@ -1,11 +1,9 @@
 package graphql.language;
 
-import javax.xml.ws.Service;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceDefinition extends AbstractNode<ServiceDefinition> implements TypeDefinition<ServiceDefinition>  {
-
     private final String name;
     private final String url;
     private final List<Directive> directives;
@@ -45,6 +43,11 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> implement
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public List<Directive> getDirectives() {
+        return null;
     }
 
     public String getUrl() {
