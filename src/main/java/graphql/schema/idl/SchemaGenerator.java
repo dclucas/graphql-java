@@ -495,18 +495,38 @@ public class SchemaGenerator {
 
     private GraphQLFieldDefinition buildField(BuildContext buildCtx, TypeDefinition parentType, FieldDefinition fieldDef) {
         GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
-        builder.definition(fieldDef);
-        builder.name(fieldDef.getName());
-        builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
-        builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
+       if(fieldDef.getFieldTransformation() != null) {
+           FieldDefinition targetFieldDefinition = fieldDef.getFieldTransformation().getTargetFieldDefinition();
+           builder.definition(fieldDef);
+           builder.name(targetFieldDefinition.getName());
+           builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
+           builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
 
-        builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
+           builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
 
-        fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
-                builder.argument(buildArgument(buildCtx, inputValueDefinition)));
+           fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
+                   builder.argument(buildArgument(buildCtx, inputValueDefinition)));
 
-        GraphQLOutputType outputType = buildOutputType(buildCtx, fieldDef.getType());
-        builder.type(outputType);
+           GraphQLOutputType outputType = buildOutputType(buildCtx, targetFieldDefinition.getType());
+           builder.type(outputType);
+
+       }else {
+           builder.definition(fieldDef);
+           builder.name(fieldDef.getName());
+           builder.description(buildDescription(fieldDef, fieldDef.getDescription()));
+           builder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
+
+           builder.dataFetcherFactory(buildDataFetcherFactory(buildCtx, parentType, fieldDef));
+
+           fieldDef.getInputValueDefinitions().forEach(inputValueDefinition ->
+                   builder.argument(buildArgument(buildCtx, inputValueDefinition)));
+
+           GraphQLOutputType outputType = buildOutputType(buildCtx, fieldDef.getType());
+           builder.type(outputType);
+
+       }
+
+
 
         return builder.build();
     }
