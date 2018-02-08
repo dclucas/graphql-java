@@ -45,11 +45,6 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> implement
         return name;
     }
 
-    @Override
-    public List<Directive> getDirectives() {
-        return null;
-    }
-
     public String getUrl() {
         return url;
     }
