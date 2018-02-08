@@ -4,7 +4,7 @@ grammar Graphql;
     package graphql.parser.antlr;
 }
 
-// Document 
+// Document
 
 document : definition+;
 
@@ -16,9 +16,8 @@ serviceDefinition
 ;
 
 serviceDefinition:
-'service' name '{' serviceUrl '}' ;
-serviceUrl: 'url' ':' url;
-url: 'someUrl';
+'service' name '{' serviceUrl typeSystemDefinition '}' ;
+serviceUrl: 'url' ':' stringValue;
 
 operationDefinition:
 selectionSet |

@@ -4,10 +4,11 @@ import java.util.List;
 
 public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
 
-    private final String name;
-    private final String url;
+    private String name;
+    private String url;
     private List<TypeDefinition<?>> typeDefinitions;
 
+    public ServiceDefinition() {}
 
     public ServiceDefinition(String name, String url) {
         this.name = name;
@@ -37,6 +38,10 @@ public class ServiceDefinition extends AbstractNode<ServiceDefinition> {
     public String getUrl() {
         return url;
     }
+
+    public void setName(String name) { this.name = name; }
+
+    public void setUrl(String url) { this.url = url; }
 
     public List<TypeDefinition<?>> getTypeDefinitions() {
         return typeDefinitions;
