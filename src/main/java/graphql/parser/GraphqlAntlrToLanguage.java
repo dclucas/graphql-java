@@ -839,4 +839,9 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
         }
         return comments;
     }
+
+    @Override
+    public Void visitServiceDefinition(GraphqlParser.ServiceDefinitionContext ctx) {
+        return super.visitServiceDefinition(ctx);
+    }
 }

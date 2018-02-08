@@ -11,8 +11,14 @@ document : definition+;
 definition:
 operationDefinition |
 fragmentDefinition |
-typeSystemDefinition
+typeSystemDefinition |
+serviceDefinition
 ;
+
+serviceDefinition:
+'service' name '{' serviceUrl '}' ;
+serviceUrl: 'url' ':' url;
+url: 'someUrl';
 
 operationDefinition:
 selectionSet |
@@ -211,6 +217,9 @@ INPUT: 'input';
 EXTEND: 'extend';
 DIRECTIVE: 'directive';
 NAME: [_A-Za-z][_0-9A-Za-z]*;
+//URL: [_A-Za-z0-9.]+;
+
+
 
 
 IntValue : Sign? IntegerPart;
