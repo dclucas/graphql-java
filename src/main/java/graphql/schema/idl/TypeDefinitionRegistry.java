@@ -44,7 +44,7 @@ public class TypeDefinitionRegistry {
         List<GraphQLError> errors = new ArrayList<>();
 
         Map<String, TypeDefinition> tempTypes = new LinkedHashMap<>();
-        typeRegistry.types.values().forEach(newEntry -> define(this.types, tempTypes, newEntry).ifPresent(errors::add));
+        typeRegistry.types.values().forEach(newEntry -> this.<TypeDefinition>define(this.types, tempTypes, newEntry).ifPresent(errors::add));
 
         Map<String, ScalarTypeDefinition> tempScalarTypes = new LinkedHashMap<>();
         typeRegistry.scalarTypes.values().forEach(newEntry -> define(this.scalarTypes, tempScalarTypes, newEntry).ifPresent(errors::add));
@@ -89,15 +89,15 @@ public class TypeDefinitionRegistry {
         } else if (definition instanceof ScalarTypeDefinition) {
             ScalarTypeDefinition newEntry = (ScalarTypeDefinition) definition;
             return define(scalarTypes, scalarTypes, newEntry);
-        } else if (definition instanceof TypeDefinition) {
-            TypeDefinition newEntry = (TypeDefinition) definition;
-            return define(types, types, newEntry);
         } else if (definition instanceof ServiceDefinition) {
             ServiceDefinition serviceDefinition = (ServiceDefinition) definition;
             serviceDefinitions.put(((ServiceDefinition) definition).getName(), (ServiceDefinition) definition);
             for(TypeDefinition typeDefinition: serviceDefinition.getTypeDefinitions()) {
-               add(typeDefinition);
+                add(typeDefinition);
             }
+        } else if (definition instanceof TypeDefinition) {
+            TypeDefinition newEntry = (TypeDefinition) definition;
+            return define(types, types, newEntry);
         } else if (definition instanceof SchemaDefinition) {
             SchemaDefinition newSchema = (SchemaDefinition) definition;
             if (schema != null) {

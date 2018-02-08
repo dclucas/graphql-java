@@ -185,7 +185,6 @@ public class SchemaGenerator {
                 }
             }
         }
-        query = buildOutputType(buildCtx, new TypeName("Query"));
 
         Assert.assertNotEmpty(queries, "queries not found");
         GraphQLObjectType queryType = buildQueryType(buildCtx, queries);
@@ -236,7 +235,8 @@ public class SchemaGenerator {
 //            }
 //        }
 
-        Set<GraphQLType> additionalTypes = buildAdditionalTypes(buildCtx);
+//        Set<GraphQLType> additionalTypes = buildAdditionalTypes(buildCtx);
+        Set<GraphQLType> additionalTypes = Collections.emptySet();
 
         schemaBuilder.fieldVisibility(buildCtx.getWiring().getFieldVisibility());
         return schemaBuilder.build(additionalTypes);

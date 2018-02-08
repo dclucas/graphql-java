@@ -15,7 +15,7 @@ public class SelectionSet extends AbstractNode<SelectionSet> {
     public SelectionSet() {
     }
 
-    public SelectionSet(List<Selection> selections) {
+    public SelectionSet(List<? extends Selection> selections) {
         this.selections.addAll(selections);
     }
 
