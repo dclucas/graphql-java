@@ -73,17 +73,16 @@ public class StitchingDSLExample {
 
     public static void main(String[] args) throws IOException {
 
+        SchemaParser schemaParser = new SchemaParser();
+        // TODO: comment in  the next two lines when ready
 //        String schema = Files.readAllLines(Paths.get("./stitching-dsl.txt")).stream().collect(Collectors.joining());
-//
-//        SchemaParser schemaParser = new SchemaParser();
-
+//        schemaParser.parse(schema);
+        // TODO: remove when ready
         Document document = buildDocument();
 
-        StitchingRuntimeWiring wiringFactory = new StitchingRuntimeWiring();
-
-        SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.buildRegistry(document);
 
+        StitchingRuntimeWiring wiringFactory = new StitchingRuntimeWiring();
         RuntimeWiring runtimeWiring = newRuntimeWiring()
                 .wiringFactory(wiringFactory)
                 .build();
