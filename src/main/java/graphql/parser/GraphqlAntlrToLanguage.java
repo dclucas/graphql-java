@@ -3,47 +3,7 @@ package graphql.parser;
 
 import graphql.Assert;
 import graphql.Internal;
-import graphql.language.AbstractNode;
-import graphql.language.Argument;
-import graphql.language.ArrayValue;
-import graphql.language.BooleanValue;
-import graphql.language.Comment;
-import graphql.language.Description;
-import graphql.language.Directive;
-import graphql.language.DirectiveDefinition;
-import graphql.language.DirectiveLocation;
-import graphql.language.Document;
-import graphql.language.EnumTypeDefinition;
-import graphql.language.EnumValue;
-import graphql.language.EnumValueDefinition;
-import graphql.language.Field;
-import graphql.language.FieldDefinition;
-import graphql.language.FloatValue;
-import graphql.language.FragmentDefinition;
-import graphql.language.FragmentSpread;
-import graphql.language.InlineFragment;
-import graphql.language.InputObjectTypeDefinition;
-import graphql.language.InputValueDefinition;
-import graphql.language.IntValue;
-import graphql.language.InterfaceTypeDefinition;
-import graphql.language.ListType;
-import graphql.language.NonNullType;
-import graphql.language.ObjectField;
-import graphql.language.ObjectTypeDefinition;
-import graphql.language.ObjectValue;
-import graphql.language.OperationDefinition;
-import graphql.language.OperationTypeDefinition;
-import graphql.language.ScalarTypeDefinition;
-import graphql.language.SchemaDefinition;
-import graphql.language.SelectionSet;
-import graphql.language.SourceLocation;
-import graphql.language.StringValue;
-import graphql.language.TypeExtensionDefinition;
-import graphql.language.TypeName;
-import graphql.language.UnionTypeDefinition;
-import graphql.language.Value;
-import graphql.language.VariableDefinition;
-import graphql.language.VariableReference;
+import graphql.language.*;
 import graphql.parser.antlr.GraphqlBaseVisitor;
 import graphql.parser.antlr.GraphqlParser;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -53,11 +13,7 @@ import org.antlr.v4.runtime.Token;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 import static graphql.language.NullValue.Null;
 import static graphql.parser.StringValueParsing.parseSingleQuotedString;
@@ -75,6 +31,9 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
     }
 
     private enum ContextProperty {
+        ServiceDefinition,
+        ServiceUrlDefinition,
+        StringValue,
         OperationDefinition,
         FragmentDefinition,
         Field,
@@ -114,7 +73,6 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
 
 
     private void addContextProperty(ContextProperty contextProperty, Object value) {
-
         switch (contextProperty) {
             case SelectionSet:
                 newSelectionSet((SelectionSet) value);
@@ -474,6 +432,17 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitServiceDefinition(GraphqlParser.ServiceDefinitionContext ctx) {
+        String url = parseSingleQuotedString(ctx.serviceUrl().stringValue().getText());
+        String name = ctx.name().getText();
+        ServiceDefinition def = new ServiceDefinition(name, url);
+        addContextProperty(ContextProperty.ServiceDefinition, def);
+        super.visitChildren(ctx);
+        result.getDefinitions().add(def);
+        return null;
+    }
+
+    @Override
     public Void visitOperationTypeDefinition(GraphqlParser.OperationTypeDefinitionContext ctx) {
         OperationTypeDefinition def = new OperationTypeDefinition(ctx.operationType().getText());
         newNode(def, ctx);
@@ -483,6 +452,7 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
         addContextProperty(ContextProperty.OperationTypeDefinition, def);
         super.visitChildren(ctx);
         popContext();
@@ -504,6 +474,7 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
     @Override
     public Void visitObjectTypeDefinition(GraphqlParser.ObjectTypeDefinitionContext ctx) {
         ObjectTypeDefinition def = null;
+        ServiceDefinition svcDef = null;
         for (ContextEntry contextEntry : contextStack) {
             if (contextEntry.contextProperty == ContextProperty.TypeExtensionDefinition) {
                 ((TypeExtensionDefinition) contextEntry.value).setName(ctx.name().getText());
@@ -511,11 +482,24 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
+        for (ContextEntry contextEntry : contextStack) {
+            if (contextEntry.contextProperty == ContextProperty.ServiceDefinition) {
+                svcDef = (ServiceDefinition) contextEntry.value;
+                break;
+            }
+        }
+
         if (null == def) {
             def = new ObjectTypeDefinition(ctx.name().getText());
             newNode(def, ctx);
             def.setDescription(newDescription(ctx.description()));
-            result.getDefinitions().add(def);
+            if (null != svcDef) {
+                svcDef.getTypeDefinitions().add(def);
+            }
+            else {
+                result.getDefinitions().add(def);
+            }
         }
         addContextProperty(ContextProperty.ObjectTypeDefinition, def);
         super.visitChildren(ctx);
@@ -838,10 +822,5 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
             comments.add(new Comment(text, new SourceLocation(refTok.getLine(), refTok.getCharPositionInLine())));
         }
         return comments;
-    }
-
-    @Override
-    public Void visitServiceDefinition(GraphqlParser.ServiceDefinitionContext ctx) {
-        return super.visitServiceDefinition(ctx);
     }
 }

@@ -38,8 +38,34 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ParserTest extends Specification {
+    def "parse service definition"() {
+        given:
+        def input =
+"""service PostSvc {
+    url: "asd"
+    type Post {
+        id: ID!
+        title: String
+    }
 
+    extend type User {
+        id: ID!
+        posts: [Post]
+    }    
+}
 
+service UserSvc {
+    url: "xyz"
+    type User {
+        id: ID!
+    }
+}"""
+        when:
+        Document document = new Parser().parseDocument(input)
+        then:
+        assert document.definitions.size() > 0
+    }
+/*
     def "parse anonymous simple query"() {
         given:
         def input = "{ me }"
@@ -52,7 +78,6 @@ class ParserTest extends Specification {
         document.definitions[0].operation == OperationDefinition.Operation.QUERY
         assertField(document.definitions[0] as OperationDefinition, "me")
     }
-
 
     def assertField(OperationDefinition operationDefinition, String fieldName) {
         Selection selection = operationDefinition.getSelectionSet().getSelections()[0]
@@ -669,4 +694,5 @@ triple3 : """edge cases \\""" "" " \\"" \\" edge cases"""
         }
         true
     }
+    */
 }
