@@ -80,7 +80,7 @@ service UserSvc {
         then:
         assert document.definitions.size() > 0
     }
-/*
+
     def "parse anonymous simple query"() {
         given:
         def input = "{ me }"
@@ -709,5 +709,4 @@ triple3 : """edge cases \\""" "" " \\"" \\" edge cases"""
         }
         true
     }
-    */
 }
