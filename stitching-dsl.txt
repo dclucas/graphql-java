@@ -1,4 +1,13 @@
-service X {
+service Foo1 {
+    url: "https://4r09jwx0k9.lp.gql.zone/graphql"
+    type Query {
+       hello: String
+    }
+}
 
-
+service Foo2 {
+    url: "https://4r09jwx0k9.lp.gql.zone/graphql"
+    type Query {
+       hello2: String
+    }
 }

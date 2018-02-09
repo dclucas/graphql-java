@@ -200,12 +200,11 @@ public class StitchingDSLExample {
 
         SchemaParser schemaParser = new SchemaParser();
         // TODO: comment in  the next two lines when ready
-//        String schema = Files.readAllLines(Paths.get("./stitching-dsl.txt")).stream().collect(Collectors.joining());
-//        schemaParser.parse(schema);
-        // TODO: remove when ready
-        Document document = buildDocument3();
-
-        TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.buildRegistry(document);
+        String schema = Files.readAllLines(Paths.get("./stitching-dsl.txt")).stream().collect(Collectors.joining());
+        TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+//        // TODO: remove when ready
+//        Document document = buildDocument3();
+//        TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.buildRegistry(document);
 
         StitchingRuntimeWiring wiringFactory = new StitchingRuntimeWiring();
         RuntimeWiring runtimeWiring = newRuntimeWiring()
@@ -221,7 +220,8 @@ public class StitchingDSLExample {
 
         GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
 //
-        ExecutionResult executionResult1 = build.execute("{posts{id, author {id name}}}");
+//        ExecutionResult executionResult1 = build.execute("{posts{id, author {id name}}}");
+        ExecutionResult executionResult1 = build.execute("{hello}");
         System.out.println(executionResult1.getData().toString());
 
 
