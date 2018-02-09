@@ -507,6 +507,18 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitFieldTransformation(GraphqlParser.FieldTransformationContext ctx) {
+        FieldDefinition fieldDef = (FieldDefinition) contextStack.peek().value;
+        GraphqlParser.TargetFieldDefinitionContext targetDef = ctx.targetFieldDefinition();
+        FieldTransformation trans = new FieldTransformation();
+        FieldDefinition target = new FieldDefinition(
+                targetDef.name().getText(),
+                new TypeName(targetDef.type().getText()));
+        trans.setTargetFieldDefinition(target);
+        fieldDef.setFieldTransformation(trans);
+        return null;
+    }
 
     @Override
     public Void visitFieldDefinition(GraphqlParser.FieldDefinitionContext ctx) {
@@ -531,6 +543,7 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
         addContextProperty(ContextProperty.FieldDefinition, def);
         super.visitChildren(ctx);
         popContext();
