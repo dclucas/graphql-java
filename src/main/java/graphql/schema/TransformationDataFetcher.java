@@ -1,19 +1,16 @@
 package graphql.schema;
 
 
-import graphql.Assert;
 import graphql.PublicApi;
 import graphql.language.Argument;
 import graphql.language.AstPrinter;
 import graphql.language.Field;
-import graphql.language.FieldDefinition;
 import graphql.language.FieldTransformation;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.OperationDefinition;
 import graphql.language.SelectionSet;
 import graphql.language.ServiceDefinition;
 import graphql.language.StringValue;
-import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.validation.ValidationUtil;
 
@@ -21,7 +18,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static graphql.Assert.assertNotNull;
 import static graphql.Assert.assertTrue;
@@ -43,7 +39,7 @@ public class TransformationDataFetcher implements DataFetcher {
 
         TypeName targetType = validationUtil.getUnmodifiedType(fieldTransformation.getTargetFieldDefinition().getType());
         GraphQLType targetGraphQLType = environment.getGraphQLSchema().getType(targetType.getName());
-        assertTrue(targetGraphQLType instanceof ObjectTypeDefinition, "target type must be an Object");
+        assertTrue(targetGraphQLType instanceof GraphQLObjectType, "target type must be an Object");
 
         GraphQLObjectType targetObjectType = (GraphQLObjectType) targetGraphQLType;
 
@@ -55,7 +51,7 @@ public class TransformationDataFetcher implements DataFetcher {
         HttpRemoteRetriever remoteRetriever = new HttpRemoteRetriever(getRemoteUrl(targetService));
 
 
-        PropertyDataFetcher propertyDataFetcher = new PropertyDataFetcher(environment.getFieldDefinition().getName());
+        PropertyDataFetcher propertyDataFetcher = new PropertyDataFetcher(environment.getFieldDefinition().getDefinition().getName());
         Object id = propertyDataFetcher.get(environment);
         assertNotNull(id, "id is null");
 
@@ -63,18 +59,19 @@ public class TransformationDataFetcher implements DataFetcher {
         // Convention: name of Type to lowercase is a valid query by Id
         Field getTypeByIdField = new Field(targetObjectType.getName().toLowerCase());
         getTypeByIdField.getArguments().add(new Argument("id", new StringValue(id.toString())));
-        getTypeByIdField.setSelectionSet(new SelectionSet(environment.getFields()));
+        Field field = environment.getFields().get(0);
+        getTypeByIdField.setSelectionSet(field.getSelectionSet());
 
         OperationDefinition query = new OperationDefinition();
         query.setOperation(OperationDefinition.Operation.QUERY);
         query.setSelectionSet(new SelectionSet(Arrays.asList(getTypeByIdField)));
 
-        System.out.println("query:" + AstPrinter.printAst(query));
 
         Map<String, Object> result = null;
         try {
             result = (Map<String, Object>) remoteRetriever.query(query).get();
-            return result;
+            Map data = (Map) result.get("data");
+            return data.get(getTypeByIdField.getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
