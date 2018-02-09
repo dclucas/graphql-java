@@ -594,6 +594,30 @@ public class GraphqlBaseListener implements GraphqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterFieldTransformation(GraphqlParser.FieldTransformationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFieldTransformation(GraphqlParser.FieldTransformationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTargetFieldDefinition(GraphqlParser.TargetFieldDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTargetFieldDefinition(GraphqlParser.TargetFieldDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArgumentsDefinition(GraphqlParser.ArgumentsDefinitionContext ctx) { }
 	/**
 	 * {@inheritDoc}

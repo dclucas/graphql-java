@@ -301,6 +301,18 @@ public interface GraphqlVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFieldDefinition(GraphqlParser.FieldDefinitionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GraphqlParser#fieldTransformation}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFieldTransformation(GraphqlParser.FieldTransformationContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GraphqlParser#targetFieldDefinition}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTargetFieldDefinition(GraphqlParser.TargetFieldDefinitionContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link GraphqlParser#argumentsDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

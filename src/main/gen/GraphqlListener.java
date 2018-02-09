@@ -490,6 +490,26 @@ public interface GraphqlListener extends ParseTreeListener {
 	 */
 	void exitFieldDefinition(GraphqlParser.FieldDefinitionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GraphqlParser#fieldTransformation}.
+	 * @param ctx the parse tree
+	 */
+	void enterFieldTransformation(GraphqlParser.FieldTransformationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GraphqlParser#fieldTransformation}.
+	 * @param ctx the parse tree
+	 */
+	void exitFieldTransformation(GraphqlParser.FieldTransformationContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GraphqlParser#targetFieldDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void enterTargetFieldDefinition(GraphqlParser.TargetFieldDefinitionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GraphqlParser#targetFieldDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void exitTargetFieldDefinition(GraphqlParser.TargetFieldDefinitionContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GraphqlParser#argumentsDefinition}.
 	 * @param ctx the parse tree
 	 */

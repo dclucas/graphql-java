@@ -523,6 +523,14 @@ public class GraphqlAntlrToLanguage extends GraphqlBaseVisitor<Void> {
                 break;
             }
         }
+
+        for (ContextEntry contextEntry : contextStack) {
+            if (contextEntry.contextProperty == ContextProperty.ServiceDefinition) {
+                ServiceDefinition svcDef = (ServiceDefinition) contextEntry.value;
+                def.setServiceDefinition(svcDef);
+                break;
+            }
+        }
         addContextProperty(ContextProperty.FieldDefinition, def);
         super.visitChildren(ctx);
         popContext();

@@ -41,17 +41,26 @@ class ParserTest extends Specification {
     def "parse service definition"() {
         given:
         def input =
-"""service PostSvc {
+"""
+service PostSvc {
     url: "asd"
     type Post {
         id: ID!
         title: String
+        @ConvertTo(type:"User",name:"author",query:"user")
+        authorId: ID => author : User
     }
 
     extend type User {
         id: ID!
+        @ResolveWith(query:"posts",argument:"authorId")
         posts: [Post]
-    }    
+    }
+    
+    type Query {
+        post(id:ID!) : Post
+        posts(authorId:ID) : [Post]
+    } 
 }
 
 service UserSvc {
@@ -59,7 +68,13 @@ service UserSvc {
     type User {
         id: ID!
     }
-}"""
+    
+    type Query {
+        user(id:ID!): User
+        users: [User]
+    }
+}
+"""
         when:
         Document document = new Parser().parseDocument(input)
         then:

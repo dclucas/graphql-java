@@ -158,7 +158,11 @@ implementsInterfaces :
 
 fieldsDefinition : '{' fieldDefinition+ '}';
 
-fieldDefinition : description? name argumentsDefinition? ':' type directives?;
+fieldDefinition : description? name argumentsDefinition? ':' type fieldTransformation? directives?;
+
+fieldTransformation : '=>' targetFieldDefinition;
+
+targetFieldDefinition : name ':' type;
 
 argumentsDefinition : '(' inputValueDefinition+ ')';
 
