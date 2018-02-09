@@ -1,13 +1,20 @@
-service Foo1 {
-    url: "https://4r09jwx0k9.lp.gql.zone/graphql"
+service User {
+    url: "https://r9km4x894n.lp.gql.zone/graphql"
+    type User {
+       id: ID
+       name: String
+    }
     type Query {
-       hello: String
+       user(id:ID): User
     }
 }
-
-service Foo2 {
-    url: "https://4r09jwx0k9.lp.gql.zone/graphql"
+service Posts {
+    url: "https://p0rm35pkm0.lp.gql.zone/graphql"
+    type Post {
+       id: ID
+       authorId: ID => author: User
+    }
     type Query {
-       hello2: String
+       posts: [Post]
     }
 }
