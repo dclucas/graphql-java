@@ -220,8 +220,8 @@ public class StitchingDSLExample {
 
         GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
 //
-//        ExecutionResult executionResult1 = build.execute("{posts{id, author {id name}}}");
-        ExecutionResult executionResult1 = build.execute("{hello}");
+        ExecutionResult executionResult1 = build.execute("{posts{id, author {id name}}}");
+//        ExecutionResult executionResult1 = build.execute("{hello}");
         System.out.println(executionResult1.getData().toString());
 
 
